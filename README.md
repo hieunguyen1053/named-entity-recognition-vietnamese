@@ -13,4 +13,4 @@ Dữ liệu VLSP 2016: mức từ (không dùng nhãn gold POS, Chunk)
 | Hidden Markov Model (HMM)                                                      | 58.23 |
 | Conditional Random Fields (CRF)                                                | 89.46 |
 | Unidirectional Long short-term memory (LSTM)                                   | 49.09 |
-| Bidirectional Long short-term memory - Conditional Random Fields (Bi-LSTM-CRF) | 91.17 |
+| Bidirectional Long short-term memory - Conditional Random Fields (Bi-LSTM-CRF) | 65.75 |
