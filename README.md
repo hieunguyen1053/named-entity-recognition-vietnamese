@@ -5,7 +5,7 @@
 Dữ liệu VLSP 2016: mức từ (không dùng nhãn gold POS, Chunk)
 
 **Người thực hiện**
-* Nguyễn Trọng Hiếu (@hieunguyen1053)
+* Nguyễn Trọng Hiếu ([@hieunguyen1053](https://github.com/hieunguyen1053))
 
 | Mô hình                         | F1(%) |
 | ------------------------------- | ----- |
