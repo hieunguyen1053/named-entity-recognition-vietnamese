@@ -25,8 +25,8 @@ class NerDataset(Dataset):
             items = sent.split('\n')
             for item in items:
                 w, _, _, n = item.split('\t')
-                if n[2:] in ['MISC', 'LOC', 'ORG', 'PER']:
-                    n = n[2:]
+                # if n[2:] in ['MISC', 'LOC', 'ORG', 'PER']:
+                #     n = n[2:]
                 all_words.append(w)
                 all_ners.append(n)
         if self.vocab is None or self.label is None:
@@ -41,8 +41,8 @@ class NerDataset(Dataset):
             items = sent.split('\n')
             for item in items:
                 w, _, _, n = item.split('\t')
-                if n[2:] in ['MISC', 'LOC', 'ORG', 'PER']:
-                    n = n[2:]
+                # if n[2:] in ['MISC', 'LOC', 'ORG', 'PER']:
+                #     n = n[2:]
                 x.append(self.vocab.stoi[w])
                 y.append(self.label.stoi[n])
             x.append(STOP_IDX)

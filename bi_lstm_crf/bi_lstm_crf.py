@@ -84,13 +84,13 @@ class BiLSTM_CRF_NER(nn.Module):
 
     def recreate_tags(self, tags):
         tags = [self.tag_vocab.itos[tag] for tag in tags]
-        prev_tag = 'O'
-        for idx, curr_tag in enumerate(tags):
-            if curr_tag != 'O' and prev_tag == 'O':
-                tags[idx] = 'B-' + curr_tag
-            if curr_tag == prev_tag and prev_tag != 'O':
-                tags[idx] = 'I-' + curr_tag
-            prev_tag = curr_tag
+        # prev_tag = 'O'
+        # for idx, curr_tag in enumerate(tags):
+        #     if curr_tag != 'O' and prev_tag == 'O':
+        #         tags[idx] = 'B-' + curr_tag
+        #     if curr_tag == prev_tag and prev_tag != 'O':
+        #         tags[idx] = 'I-' + curr_tag
+        #     prev_tag = curr_tag
         return tags
 
     def save(self, filepath):

@@ -62,6 +62,7 @@ def padding(sents, pad_idx, device):
     return torch.tensor(padded_data, device=device), lengths
 
 if __name__ == '__main__':
+    torch.seed()
     train_dataset = NerDataset('/Users/hieunguyen/Desktop/NLP/Master/NER/data/vlsp2016/train.txt')
     vocab = train_dataset.vocab
     label = train_dataset.label
@@ -71,7 +72,7 @@ if __name__ == '__main__':
     test_iter = DataLoader(test_dataset, batch_size, collate_fn=collate_fn)
 
     device = torch.device("cpu")
-    model = BiLSTM_CRF_NER.load('/Users/hieunguyen/Desktop/NLP/Master/NER/bi_lstm_crf/checkpoints/lstm_ner_8.pt')
+    model = BiLSTM_CRF_NER.load('/Users/hieunguyen/Desktop/NLP/Master/NER/bi_lstm_crf/checkpoints/lstm_ner_11.pt')
 
     y_test = []
     y_pred = []
