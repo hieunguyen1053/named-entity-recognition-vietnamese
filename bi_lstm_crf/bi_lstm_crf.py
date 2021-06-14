@@ -6,21 +6,30 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from constants import *
 
 class BiLSTM_CRF_NER(nn.Module):
-    def __init__(self, sent_vocab, tag_vocab, embed_dim=300, hidden_dim=300):
+    def __init__(self, sent_vocab, tag_vocab, embed_dim=300, hidden_dim=300, num_layers=3):
         super(BiLSTM_CRF_NER, self).__init__()
         self.sent_vocab = sent_vocab
         self.tag_vocab = tag_vocab
         self.embed_dim = embed_dim
         self.hidden_dim = hidden_dim
         self.embedding = nn.Embedding(len(sent_vocab), embed_dim)
-        self.lstm = nn.LSTM(embed_dim, hidden_dim, bidirectional=True)
+        self.lstm = nn.LSTM(embed_dim, hidden_dim, num_layers, bidirectional=True)
         self.linear = nn.Linear(hidden_dim * 2, len(tag_vocab))
 
         self.transitions = nn.Parameter(torch.rand(len(tag_vocab), len(tag_vocab)))
         self.transitions.data[START_IDX, :] = -10000
         self.transitions.data[:, STOP_IDX] = -10000
 
-    def forward(self, sentences, tags, sent_lengths):
+    def padding_sents(self, sents):
+        lengths = [len(sent) for sent in sents]
+        max_len = max(lengths)
+        padded_data = []
+        for sent in sents:
+            padded_data.append(sent.tolist() + [PAD_IDX] * (max_len - len(sent)))
+        return torch.tensor(padded_data, device=self.device), lengths
+
+    def forward(self, sentences, tags):
+        sentences, sent_lengths = self.padding_sents(sentences)
         mask = (sentences != PAD_IDX).to(self.device)
         sentences = sentences.transpose(0, 1)
         sentences = self.embedding(sentences)
@@ -29,7 +38,7 @@ class BiLSTM_CRF_NER(nn.Module):
         return loss
 
     def _get_lstm_features(self, sentences, sent_lengths):
-        padded_sentences = pack_padded_sequence(sentences, sent_lengths)
+        padded_sentences = pack_padded_sequence(sentences, sent_lengths, enforce_sorted=False)
         lstm_out, _ = self.lstm(padded_sentences)
         lstm_out, _ = pad_packed_sequence(lstm_out, batch_first=True)
         emit_score = self.linear(lstm_out)
@@ -59,15 +68,17 @@ class BiLSTM_CRF_NER(nn.Module):
         loss = -llk
         return loss
 
-    def predict(self, sentences, sen_lengths):
+    def predict(self, sentences):
+        sentences, sent_lengths = self.padding_sents(sentences)
         batch_size = sentences.shape[0]
         mask = (sentences != PAD_IDX)
         sentences = sentences.transpose(0, 1)
         sentences = self.embedding(sentences)
-        emit_score = self._get_lstm_features(sentences, sen_lengths)
+        emit_score = self._get_lstm_features(sentences, sent_lengths)
         tags = [[[i] for i in range(len(self.tag_vocab))]] * batch_size
         d = torch.unsqueeze(emit_score[:, 0], dim=1)
-        for i in range(1, sen_lengths[0]):
+        max_len = max(sent_lengths)
+        for i in range(1, max_len):
             n_unfinished = mask[:, i].sum()
             d_uf = d[: n_unfinished]
             emit_and_transition = self.transitions + emit_score[: n_unfinished, i].unsqueeze(dim=1)
@@ -82,15 +93,15 @@ class BiLSTM_CRF_NER(nn.Module):
         tags = [tags[b][k] for b, k in enumerate(max_idx)]
         return tags
 
-    def recreate_tags(self, tags):
+    def iob_tag(self, tags):
         tags = [self.tag_vocab.itos[tag] for tag in tags]
-        # prev_tag = 'O'
-        # for idx, curr_tag in enumerate(tags):
-        #     if curr_tag != 'O' and prev_tag == 'O':
-        #         tags[idx] = 'B-' + curr_tag
-        #     if curr_tag == prev_tag and prev_tag != 'O':
-        #         tags[idx] = 'I-' + curr_tag
-        #     prev_tag = curr_tag
+        prev_tag = 'O'
+        for idx, curr_tag in enumerate(tags):
+            if curr_tag != 'O' and prev_tag == 'O':
+                tags[idx] = 'B-' + curr_tag
+            if curr_tag == prev_tag and prev_tag != 'O':
+                tags[idx] = 'I-' + curr_tag
+            prev_tag = curr_tag
         return tags
 
     def save(self, filepath):
@@ -103,6 +114,7 @@ class BiLSTM_CRF_NER(nn.Module):
         params['embedding'] = self.embedding.state_dict()
         params['lstm'] = self.lstm.state_dict()
         params['linear'] = self.linear.state_dict()
+        params['transitions'] = self.transitions
         torch.save(params, filepath)
 
     @classmethod
@@ -117,6 +129,7 @@ class BiLSTM_CRF_NER(nn.Module):
         model.embedding.load_state_dict(params['embedding'])
         model.lstm.load_state_dict(params['lstm'])
         model.linear.load_state_dict(params['linear'])
+        model.transitions = params['transitions']
         return model
 
     @property

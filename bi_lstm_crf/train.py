@@ -7,14 +7,6 @@ import torch
 from constants import *
 
 
-def padding(sents, pad_idx, device):
-    lengths = [len(sent) for sent in sents]
-    max_len = lengths[0]
-    padded_data = []
-    for s in sents:
-        padded_data.append(s.tolist() + [pad_idx] * (max_len - len(s)))
-    return torch.tensor(padded_data, device=device), lengths
-
 def train_epoch(model, optimizer, train_dataset, device, probar):
     model.train()
     model = model.to(device)
@@ -22,11 +14,10 @@ def train_epoch(model, optimizer, train_dataset, device, probar):
     epoch_loss = 0
 
     for idx, (sentences, tags) in enumerate(train_dataset):
-        sentences, sent_lengths = padding(sentences, PAD_IDX, device)
-        tags, _ = padding(tags, PAD_IDX, device)
+        tags, _ = model.padding_sents(tags)
 
         optimizer.zero_grad()
-        batch_loss = model(sentences, tags, sent_lengths)
+        batch_loss = model(sentences, tags)
         loss = batch_loss.mean()
         loss.backward()
         optimizer.step()
@@ -43,10 +34,9 @@ def evaluate(model, val_dataset, device):
     losses = 0
 
     for idx, (sentences, tags) in enumerate(val_dataset):
-        sentences, sent_lengths = padding(sentences, PAD_IDX, device)
-        tags, _ = padding(tags, PAD_IDX, device)
+        tags, _ = model.padding_sents(tags)
 
-        batch_loss = model(sentences, tags, sent_lengths)
+        batch_loss = model(sentences, tags)
         loss = batch_loss.mean()
         losses += loss.item()
     return losses / len(val_dataset)
