@@ -13,24 +13,15 @@ class BiLSTM_CRF_NER(nn.Module):
         self.embed_dim = embed_dim
         self.hidden_dim = hidden_dim
         self.embedding = nn.Embedding(len(sent_vocab), embed_dim)
-        self.lstm = nn.LSTM(embed_dim, hidden_dim, num_layers, bidirectional=True)
+        self.lstm = nn.LSTM(embed_dim, hidden_dim, num_layers, bidirectional=True, dropout=0.2)
         self.linear = nn.Linear(hidden_dim * 2, len(tag_vocab))
 
         self.transitions = nn.Parameter(torch.rand(len(tag_vocab), len(tag_vocab)))
-        self.transitions.data[START_IDX, :] = -10000
-        self.transitions.data[:, STOP_IDX] = -10000
+        self.transitions.data[tag_vocab.stoi[BOS], :] = -10000
+        self.transitions.data[:, tag_vocab.stoi[EOS]] = -10000
 
-    def padding_sents(self, sents):
-        lengths = [len(sent) for sent in sents]
-        max_len = max(lengths)
-        padded_data = []
-        for sent in sents:
-            padded_data.append(sent.tolist() + [PAD_IDX] * (max_len - len(sent)))
-        return torch.tensor(padded_data, device=self.device), lengths
-
-    def forward(self, sentences, tags):
-        sentences, sent_lengths = self.padding_sents(sentences)
-        mask = (sentences != PAD_IDX).to(self.device)
+    def forward(self, sentences, tags, sent_lengths):
+        mask = (sentences != self.sent_vocab.stoi[PAD]).to(self.device)
         sentences = sentences.transpose(0, 1)
         sentences = self.embedding(sentences)
         emit_score = self._get_lstm_features(sentences, sent_lengths)
@@ -68,10 +59,9 @@ class BiLSTM_CRF_NER(nn.Module):
         loss = -llk
         return loss
 
-    def predict(self, sentences):
-        sentences, sent_lengths = self.padding_sents(sentences)
+    def predict(self, sentences, sent_lengths):
         batch_size = sentences.shape[0]
-        mask = (sentences != PAD_IDX)
+        mask = (sentences != self.sent_vocab.stoi[PAD])
         sentences = sentences.transpose(0, 1)
         sentences = self.embedding(sentences)
         emit_score = self._get_lstm_features(sentences, sent_lengths)

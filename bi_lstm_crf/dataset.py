@@ -27,26 +27,30 @@ class NerDataset(Dataset):
                 w, _, _, n = item.split('\t')
                 if n[2:] in ['MISC', 'LOC', 'ORG', 'PER']:
                     n = n[2:]
+                w = '_'.join(w.split())
                 all_words.append(w)
                 all_ners.append(n)
         if self.vocab is None or self.label is None:
-            self.vocab = Vocab(Counter(all_words), specials=(PAD, UNK, START, STOP))
-            self.label = Vocab(Counter(all_ners), specials=(PAD, UNK, START, STOP))
+            self.vocab = Vocab(Counter(all_words), specials=(PAD, UNK, BOS, EOS), specials_first=False)
+            self.label = Vocab(Counter(all_ners), specials=(BOS, EOS, PAD), specials_first=False)
+            self.vocab.unk_index = self.vocab.stoi[UNK]
+            self.label.unk_index = self.label.stoi['O']
 
         X = []
         Y = []
         for sent in sents:
-            x = [START_IDX]
-            y = [START_IDX]
+            x = [self.vocab.stoi[BOS]]
+            y = [self.label.stoi[BOS]]
             items = sent.split('\n')
             for item in items:
                 w, _, _, n = item.split('\t')
+                w = '_'.join(w.split())
                 if n[2:] in ['MISC', 'LOC', 'ORG', 'PER']:
                     n = n[2:]
                 x.append(self.vocab.stoi[w])
                 y.append(self.label.stoi[n])
-            x.append(STOP_IDX)
-            y.append(STOP_IDX)
+            x.append(self.vocab.stoi[BOS])
+            y.append(self.label.stoi[EOS])
             X.append(torch.tensor(x))
             Y.append(torch.tensor(y))
 

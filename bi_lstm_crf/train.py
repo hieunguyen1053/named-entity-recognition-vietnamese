@@ -7,6 +7,15 @@ import torch
 from constants import *
 
 
+def padding(sents, pad_idx, device):
+    lengths = [len(sent) for sent in sents]
+    max_len = lengths[0]
+    padded_data = []
+    for s in sents:
+        padded_data.append(s.tolist() + [pad_idx] * (max_len - len(s)))
+    return torch.tensor(padded_data, device=device), lengths
+
+
 def train_epoch(model, optimizer, train_dataset, device, probar):
     model.train()
     model = model.to(device)
@@ -14,12 +23,14 @@ def train_epoch(model, optimizer, train_dataset, device, probar):
     epoch_loss = 0
 
     for idx, (sentences, tags) in enumerate(train_dataset):
-        tags, _ = model.padding_sents(tags)
+        sentences, sent_lengths = padding(sentences, model.sent_vocab.stoi[PAD], device)
+        tags, _ = padding(tags, model.tag_vocab.stoi[PAD], device)
 
         optimizer.zero_grad()
-        batch_loss = model(sentences, tags)
+        batch_loss = model(sentences, tags, sent_lengths)
         loss = batch_loss.mean()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
         optimizer.step()
 
         probar.update(idx, values=[('loss', loss),])
@@ -34,9 +45,10 @@ def evaluate(model, val_dataset, device):
     losses = 0
 
     for idx, (sentences, tags) in enumerate(val_dataset):
-        tags, _ = model.padding_sents(tags)
+        sentences, sent_lengths = padding(sentences, model.sent_vocab.stoi[PAD], device)
+        tags, _ = padding(tags, model.tag_vocab.stoi[PAD], device)
 
-        batch_loss = model(sentences, tags)
+        batch_loss = model(sentences, tags, sent_lengths)
         loss = batch_loss.mean()
         losses += loss.item()
     return losses / len(val_dataset)
@@ -55,6 +67,7 @@ def train(model, optimizer, writer, train_dataset, val_dataset, device, epochs, 
         probar = pkbar.Kbar(target=batch_per_epoch, epoch=epoch-1, num_epochs=epochs, width=30, always_stateful=False)
         train_loss = train_epoch(model, optimizer, train_dataset, device, probar)
         val_loss = evaluate(model, val_dataset, device)
+
         probar.add(1, values=[('train_loss', train_loss), ('val_loss', val_loss),])
         writer.add_scalar('training loss',
                             train_loss,
