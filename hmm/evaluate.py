@@ -53,9 +53,10 @@ def evaluate(model, filepath):
         y = []
         items = sent.split('\n')
         for item in items:
-            w, _, _, n = item.split('\t')
-            x.append(w)
-            y.append(n)
+            word, _, _, tag = item.split('\t')
+            word = '_'.join(word.split())
+            x.append(word)
+            y.append(tag)
         y_pred.append(model.viterbi(x))
         y_test.append(y)
 

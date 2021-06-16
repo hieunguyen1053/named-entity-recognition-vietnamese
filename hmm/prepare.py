@@ -10,9 +10,10 @@ def build_vocab_and_label(sentences):
     for sent in sentences:
         items = sent.split('\n')
         for item in items:
-            w, _, _, n = item.split('\t')
-            words.append(w)
-            ners.append(n)
+            word, _, _, tag = item.split('\t')
+            word = '_'.join(word.split())
+            words.append(word)
+            ners.append(tag)
     return Vocab(Counter(words)), Vocab(Counter(ners), specials=('#'))
 
 def build_emiss_matrix(sentences, vocab, label):
@@ -23,6 +24,7 @@ def build_emiss_matrix(sentences, vocab, label):
         items = sent.split('\n')
         for item in items:
             word, _, _, tag = item.split('\t')
+            word = '_'.join(word.split())
             word_idx = vocab.stoi[word]
             tag_idx = label.stoi[tag]
             tag_to_count[tag_idx] += 1
