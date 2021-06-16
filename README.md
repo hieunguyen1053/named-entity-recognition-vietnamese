@@ -43,6 +43,6 @@ Dữ liệu VLSP 2016: mức từ (không dùng nhãn gold POS, Chunk)
 
 ## Tham khảo
 
-3. [VLSP 2016 - Named Entity Recognition](https://vlsp.org.vn/vlsp2016/eval/ner)
-1. [Named Entity Recognition (NER) using BiLSTM CRF](https://github.com/Gxzzz/BiLSTM-CRF)
-1. [Nhận dạng thực thể tên riêng tiếng Việt](https://github.com/undertheseanlp/ner)
+1. [VLSP 2016 - Named Entity Recognition](https://vlsp.org.vn/vlsp2016/eval/ner)
+2. [Named Entity Recognition (NER) using BiLSTM CRF](https://github.com/Gxzzz/BiLSTM-CRF)
+3. [Nhận dạng thực thể tên riêng tiếng Việt](https://github.com/undertheseanlp/ner)
