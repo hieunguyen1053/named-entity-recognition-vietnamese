@@ -1,7 +1,6 @@
 from collections import Counter
 
 import torch
-from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset
 from torchtext.vocab import Vocab
 
