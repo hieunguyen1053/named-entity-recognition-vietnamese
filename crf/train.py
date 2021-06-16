@@ -13,6 +13,7 @@ if __name__ == '__main__':
         items = sent.split('\n')
         for item in items:
             word, _, _, tag = item.split('\t')
+            word = '_'.join(word.split())
             x.append((word, tag))
         train_data.append(x)
 

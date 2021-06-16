@@ -1,3 +1,5 @@
+from string import punctuation
+
 class FeatureExtractor:
     def extract(self, sentences):
         X = [self.sentence2features(s) for s in sentences]
@@ -17,6 +19,8 @@ class FeatureExtractor:
             '[0]'        : word,
             '[0].lower'  : word.lower(),
             '[0].istitle': word.istitle(),
+            '[0].isdigit': word.isdigit(),
+            '[0].ispunct': word in punctuation,
         }
         if i > 0:
             word1 = s[i - 1][0]
@@ -25,6 +29,8 @@ class FeatureExtractor:
                 '[-1]'        : word1,
                 '[-1].lower'  : word1.lower(),
                 '[-1].istitle': word1.istitle(),
+                '[-1].isdigit': word1.isdigit(),
+                '[-1].ispunct': word1 in punctuation,
                 '[-1][1]'     : tag1,
                 '[-1,0]'      : "%s %s" % (word1, word),
             })
@@ -35,6 +41,8 @@ class FeatureExtractor:
                     '[-2]'        : word2,
                     '[-2].lower'  : word2.lower(),
                     '[-2].istitle': word2.istitle(),
+                    '[-2].isdigit': word2.isdigit(),
+                    '[-2].ispunct': word2 in punctuation,
                     '[-2][1]'     : tag2,
                     '[-2,-1]'     : "%s %s" % (word2, word1),
                     '[-2,-1][1]'  : "%s %s" % (tag2, tag1),
@@ -54,6 +62,8 @@ class FeatureExtractor:
                 '[+1]'        : word1,
                 '[+1].lower'  : word1.lower(),
                 '[+1].istitle': word1.istitle(),
+                '[+1].isdigit': word1.isdigit(),
+                '[+1].ispunct': word1 in punctuation,
                 '[0,+1]'      : "%s %s" % (word, word1)
             })
             if i < len(s) - 2:
@@ -62,6 +72,8 @@ class FeatureExtractor:
                     '[+2]'        : word2,
                     '[+2].lower'  : word2.lower(),
                     '[+2].istitle': word2.istitle(),
+                    '[+2].isdigit': word2.isdigit(),
+                    '[+2].ispunct': word2 in punctuation,
                     '[+1,+2]'     : "%s %s" % (word1, word2)
                 })
         else:

@@ -53,6 +53,7 @@ def evaluate(model, filepath):
         items = sent.split('\n')
         for item in items:
             word, _, _, tag = item.split('\t')
+            word = '_'.join(word.split())
             x.append((word, tag))
         test_data.append(x)
 
@@ -64,4 +65,5 @@ def evaluate(model, filepath):
 
 if __name__ == '__main__':
     model = CRF_NER.load('/Users/hieunguyen/Desktop/NLP/Master/NER/crf/model.crfsuite')
-    evaluate(model, '/Users/hieunguyen/Desktop/NLP/Master/NER/data/vlsp2016/test.txt')
+    f1_score = evaluate(model, '/Users/hieunguyen/Desktop/NLP/Master/NER/data/vlsp2016/test.txt')
+    print(f1_score)
